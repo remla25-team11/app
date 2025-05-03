@@ -2,6 +2,7 @@ import requests
 from flask import Flask, jsonify, request
 import os
 
+
 app = Flask(__name__)
 
 URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:5001/predict")

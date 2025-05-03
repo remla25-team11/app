@@ -1,5 +1,4 @@
-# Using slim cuz faster
-# can be removed
+# Using slim cuz faster can be removed
 FROM  python:3.12-slim
 
 WORKDIR /app
