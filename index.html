@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ML Sentiment Analysis</h1>
+            <div class="version-info">
+                <span id="app-version">App Version: Loading...</span>
+                <span id="model-version">Model Version: Loading...</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <h2>Enter your restaurant review</h2>
+                <textarea id="review-input" placeholder="Type your restaurant review here..."></textarea>
+                <button id="submit-btn">Analyze Sentiment</button>
+            </div>
+
+            <div class="result-section" id="result-container">
+                <h2>Sentiment Analysis Result</h2>
+                <div class="result-display">
+                    <div id="sentiment-emoji">😐</div>
+                    <div id="sentiment-text">No analysis yet</div>
+                </div>
+                <div class="feedback-section">
+                    <p>Is this prediction correct?</p>
+                    <div class="feedback-buttons">
+                        <button id="correct-btn">Yes</button>
+                        <button id="incorrect-btn">No</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>REMLA Project - Team X</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
