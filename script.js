@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.APP_SERVICE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = window.APP_SERVICE_URL || 'http://localhost:8080';
 const ENDPOINTS = {
     appVersion: '/version',
     modelVersion: '/model/version',

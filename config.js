@@ -1,0 +1,1 @@
+window.APP_SERVICE_URL = "__APP_SERVICE_URL__";
