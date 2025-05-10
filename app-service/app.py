@@ -2,8 +2,10 @@ import requests
 from flask import Flask, jsonify, request, Blueprint
 import os
 import uuid 
+from flask_cors import CORS 
 
 app = Flask(__name__)
+CORS(app) 
 
 URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:8080/predict")
 URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://localhost:5001/model/version")
