@@ -3,12 +3,13 @@ from flask import Flask, jsonify, request, Blueprint
 import os
 import uuid 
 from flask_cors import CORS 
+from lib_version.lib_version import VersionUtil
 
 app = Flask(__name__)
 CORS(app) 
 
-URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:8080/predict")
-URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://localhost:5001/model/version")
+URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:8000/predict")
+URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://localhost:8000/version")
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -43,7 +44,8 @@ def model_version():
 
 @api.route("/version", methods=["GET"])
 def version():
-    return jsonify({"version": "version-placeholder"}), 200
+    app_version = VersionUtil.get_version()
+    return jsonify({"version": app_version}), 200
 
 
 @api.route("/feedback", methods=["POST"])
