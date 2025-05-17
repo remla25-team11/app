@@ -4,7 +4,7 @@ console.log("API_BASE_URL = ", API_BASE_URL);
 const ENDPOINTS = {
     appVersion: '/version',
     modelVersion: '/model/version',
-    analyze: '/predict',
+    analyze: '/analyze',
     feedback: '/feedback'
 };
 
