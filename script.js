@@ -1,8 +1,8 @@
-const API_BASE_URL = window.APP_SERVICE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = window.APP_SERVICE_URL || 'http://localhost:5000';
 const ENDPOINTS = {
-    appVersion: '/version',
-    modelVersion: '/model/version',
-    analyze: '/analyze'
+    appVersion: '/api/version',
+    modelVersion: '/api/model/version',
+    analyze: '/api/analyze'
 };
 
 // DOM Elements
