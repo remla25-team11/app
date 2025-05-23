@@ -3,7 +3,7 @@ console.log("API_BASE_URL = ", API_BASE_URL);
 
 const ENDPOINTS = {
     appVersion: '/version',
-    modelVersion: '/model/version',
+    modelVersion: '/model_version',
     analyze: '/analyze',
     feedback: '/feedback'
 };
@@ -135,6 +135,7 @@ async function initApp() {
 
         // model version
         const modelVersionData = await fetchFromAPI(ENDPOINTS.modelVersion);
+        console.log(modelVersionData);
         if (!modelVersionData.error) {
             elements.modelVersion.textContent = `Model Version: ${modelVersionData.version}`;
         }

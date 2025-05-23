@@ -4,6 +4,7 @@ import os
 import uuid 
 from flask_cors import CORS 
 from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import traceback # Import traceback
 
 app = Flask(__name__)
 CORS(app) 
@@ -15,8 +16,8 @@ RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response time
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
 
 # Environment URLs
-URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:8000/predict")
-URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://localhost:8000/version")
+URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://model-service:8000/predict") # Corrected from localhost
+URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://model-service:8000/version") # Corrected from localhost
 
 # Blueprint setup
 api = Blueprint('api', __name__, url_prefix='/api')
@@ -43,17 +44,19 @@ def analyze():
         return jsonify({"error": str(e)}), 502
 
 
-@api.route("/model/version", methods=["GET"])
+@api.route("/model_version", methods=["GET"])
 @RESPONSE_TIME.labels("model_version").time()
 def model_version():
     REQUEST_COUNT.labels("model_version").inc()
     try:
         response = requests.get(URL_MODEL_VERSION)
+        response.raise_for_status() 
         version = response.json().get("version", "unknown")
-        MODEL_VERSION_GAUGE.labels(version).set(1)
-        return jsonify(response.json()), response.status_code
+        return jsonify({"version": version, "status_code": response.status_code}), response.status_code
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 502
+        print(f"Error fetching model version from model-service: {e}")
+        print(traceback.format_exc()) 
+        return jsonify({"error": "Could not fetch model version from model-service", "details": str(e)}), 502
 
 
 @api.route("/version", methods=["GET"])
@@ -61,15 +64,19 @@ def version():
     """
     Get the app version from the lib-version repository's latest GitHub release tag.
     """
-    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/releases/latest"
+    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/tags" # Changed to fetch all tags
     try:
         response = requests.get(github_api_url)
         response.raise_for_status() # Raise an exception for HTTP errors
-        release_info = response.json()
-        app_version = release_info.get("tag_name", "unknown")
+        tags_info = response.json()
+        if tags_info:
+            app_version = tags_info[0].get("name", "unknown") # Get the name of the first tag (latest)
+        else:
+            app_version = "no-tags-found"
         return jsonify({"version": app_version}), 200
     except requests.exceptions.RequestException as e:
         print(f"Error fetching app version from GitHub API: {e}")
+        print(traceback.format_exc()) # Print full traceback
         return jsonify({"error": "Could not fetch app version", "details": str(e)}), 500
 
 
