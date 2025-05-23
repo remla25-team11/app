@@ -40,7 +40,7 @@ async function fetchFromAPI(endpoint, method = 'GET', data = null) {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
 
         if (!response.ok) {
-            throw new Error(`API responded with status: ${response.status}`);
+            throw new Error(`API responded with status: ${response.status}\nURL: ${API_BASE_URL}${endpoint}`);
         }
 
         return await response.json();
