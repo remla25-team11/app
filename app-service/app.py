@@ -15,8 +15,8 @@ RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response time
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
 
 # Environment URLs
-URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://localhost:8000/predict")
-URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://localhost:8000/version")
+URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://model-service:8000/predict")
+URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION", "http://model-service:8000/version")
 
 # Blueprint setup
 api = Blueprint('api', __name__, url_prefix='/api')
