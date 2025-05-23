@@ -57,6 +57,13 @@ jobs:
           && sudo apt update \
           && sudo apt install gh -y
 
+          # Fetch the latest commit SHA from lib-version repository's main branch
+          LIB_VERSION_SHA=$(gh api \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/remla25-team11/lib-version/git/refs/heads/main \
+            --jq '.object.sha')
+          echo "Latest lib-version SHA: $LIB_VERSION_SHA"
+
           # Create tag in lib-version repository
           # Ensure GH_TOKEN has write access to lib-version repository
           gh api \
@@ -64,4 +71,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             /repos/remla25-team11/lib-version/git/refs \
             -F ref="refs/tags/${{ env.version }}" \
-            -F sha="$(git rev-parse HEAD)" # Use the current commit SHA of the app repo for the tag
+            -F sha="$LIB_VERSION_SHA"
