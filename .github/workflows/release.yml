@@ -44,3 +44,31 @@ jobs:
           docker push $IMG:${{ env.version_major }}.${{ env.version_minor }}.latest
           docker push $IMG:${{ env.version_major }}.latest
           docker push $IMG:latest
+
+      - name: Create tag in lib-version repository
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          # Install GitHub CLI
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+rw /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
+          # Fetch the latest commit SHA from lib-version repository's main branch
+          LIB_VERSION_SHA=$(gh api \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/remla25-team11/lib-version/git/refs/heads/main \
+            --jq '.object.sha')
+          echo "Latest lib-version SHA: $LIB_VERSION_SHA"
+
+          # Create tag in lib-version repository
+          # Ensure GH_TOKEN has write access to lib-version repository
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/remla25-team11/lib-version/git/refs \
+            -F ref="refs/tags/${{ env.version }}" \
+            -F sha="$LIB_VERSION_SHA"
