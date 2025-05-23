@@ -3,7 +3,6 @@ from flask import Flask, jsonify, request, Blueprint
 import os
 import uuid 
 from flask_cors import CORS 
-from lib_version.lib_version import VersionUtil
 from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
@@ -59,8 +58,19 @@ def model_version():
 
 @api.route("/version", methods=["GET"])
 def version():
-    app_version = VersionUtil.get_version()
-    return jsonify({"version": app_version}), 200
+    """
+    Get the app version from the lib-version repository's latest GitHub release tag.
+    """
+    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/releases/latest"
+    try:
+        response = requests.get(github_api_url)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        release_info = response.json()
+        app_version = release_info.get("tag_name", "unknown")
+        return jsonify({"version": app_version}), 200
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching app version from GitHub API: {e}")
+        return jsonify({"error": "Could not fetch app version", "details": str(e)}), 500
 
 
 @api.route("/feedback", methods=["POST"])
