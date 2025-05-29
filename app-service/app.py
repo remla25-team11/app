@@ -52,7 +52,7 @@ def model_version():
         response = requests.get(URL_MODEL_VERSION)
         response.raise_for_status() 
         version = response.json().get("version", "unknown")
-        return jsonify({"version": version, "status_code": response.status_code}), response.status_code
+        return jsonify({"version": version, "status_code": response.status_code}, "test_message": "works!"), response.status_code
     except requests.exceptions.RequestException as e:
         print(f"Error fetching model version from model-service: {e}")
         print(traceback.format_exc()) 
@@ -61,24 +61,24 @@ def model_version():
 
 @api.route("/version", methods=["GET"])
 def version():
-    """
-    Get the app version from the lib-version repository's latest GitHub release tag.
-    """
-    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/tags" # Changed to fetch all tags
+    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/tags"
     try:
         response = requests.get(github_api_url)
-        response.raise_for_status() # Raise an exception for HTTP errors
+        response.raise_for_status()
         tags_info = response.json()
-        if tags_info:
-            app_version = tags_info[0].get("name", "unknown") # Get the name of the first tag (latest)
-        else:
-            app_version = "no-tags-found"
-        return jsonify({"version": app_version}), 200
+        lib_version = tags_info[0].get("name", "unknown") if tags_info else "no-tags-found"
+        status_code = 200
     except requests.exceptions.RequestException as e:
         print(f"Error fetching app version from GitHub API: {e}")
-        print(traceback.format_exc()) # Print full traceback
-        return jsonify({"error": "Could not fetch app version", "details": str(e)}), 500
+        print(traceback.format_exc())
+        lib_version = "error"
+        status_code = 500
 
+    deployment_version = os.getenv("APP_VERSION", "unknown")
+    return jsonify({
+        "deployment": deployment_version,
+        "lib_version": lib_version
+    }), status_code
 
 @api.route("/feedback", methods=["POST"])
 def feedback():
