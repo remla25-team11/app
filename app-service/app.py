@@ -52,7 +52,7 @@ def model_version():
         response = requests.get(URL_MODEL_VERSION)
         response.raise_for_status() 
         version = response.json().get("version", "unknown")
-        return jsonify({"version": version, "status_code": response.status_code}, "test_message": "works!"), response.status_code
+        return jsonify({"version": version, "status_code": response.status_code}), response.status_code
     except requests.exceptions.RequestException as e:
         print(f"Error fetching model version from model-service: {e}")
         print(traceback.format_exc()) 
