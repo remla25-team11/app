@@ -158,8 +158,15 @@ document.addEventListener('DOMContentLoaded', initApp);
 document.addEventListener('DOMContentLoaded', () => {
     const darkToggle = document.getElementById('dark-toggle');
     if (darkToggle) {
-        darkToggle.addEventListener('change', () => {
-            document.body.classList.toggle('dark-mode', darkToggle.target.checked);
-        });
+      darkToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode', darkToggle.checked);
+        fetch('/api/metrics/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ toggled: darkToggle.checked })
+          });
+          
+      });
     }
-});
+  });
+  
