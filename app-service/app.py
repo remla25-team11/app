@@ -14,6 +14,8 @@ REQUEST_COUNT = Counter("webapp_requests_total", "Total number of requests", ["e
 SENTIMENT_COUNTER = Counter("sentiment_predictions_total", "Count of predicted sentiments", ["sentiment"])
 RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response times", ["endpoint"])
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
+DARKMODE_TOGGLE = Counter("dark_mode_toggle_total", "Count of dark mode toggles", ["version"])
+
 
 # Environment URLs
 URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE", "http://model-service:8000/predict") # Corrected from localhost
@@ -58,6 +60,14 @@ def model_version():
         print(traceback.format_exc()) 
         return jsonify({"error": "Could not fetch model version from model-service", "details": str(e)}), 502
 
+
+@api.route("/metrics/toggle", methods=["POST"])
+def track_dark_toggle():
+    try:
+        DARKMODE_TOGGLE.labels(version=os.getenv("APP_VERSION", "v1")).inc()
+        return '', 204
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @api.route("/version", methods=["GET"])
 def version():
