@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="connection-status" class="connection-status hidden">
+        Warning: no connection to backend service.
+    </div>
     <div class="container">
         <header>
             <h1>ML Sentiment Analysis</h1>
@@ -26,7 +29,13 @@
             <div class="input-section">
                 <h2>Enter your restaurant review</h2>
                 <textarea id="review-input" placeholder="Type your restaurant review here..."></textarea>
-                <button id="submit-btn">Analyze Sentiment</button>
+                <div
+                    id="char-counter" style="text-align: right; font-size: 1em; color: #000000;">0/50
+                </div>
+                <div class="input-buttons">
+                    <button id="submit-btn" type="button">Submit</button>
+                    <button id="clear-btn" type="button">Clear</button>
+                </div>
             </div>
 
             <div class="result-section" id="result-container">
