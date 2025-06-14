@@ -14,13 +14,65 @@ const elements = {
     modelVersion: document.getElementById('model-version'),
     reviewInput: document.getElementById('review-input'),
     submitBtn: document.getElementById('submit-btn'),
+    clearBtn: document.getElementById('clear-btn'),
     resultContainer: document.getElementById('result-container'),
     sentimentEmoji: document.getElementById('sentiment-emoji'),
     sentimentText: document.getElementById('sentiment-text'),
     correctBtn: document.getElementById('correct-btn'),
-    incorrectBtn: document.getElementById('incorrect-btn')
+    incorrectBtn: document.getElementById('incorrect-btn'),
+    charCounter: document.getElementById('char-counter')
 };
 
+const connectionStatus = document.getElementById('connection-status');
+
+let requestQueue = JSON.parse(localStorage.getItem('requestQueue') || '[]');
+
+function queueRequest(endpoint, method, data, onSuccess) {
+    requestQueue.push({ endpoint, method, data });
+    localStorage.setItem('requestQueue', JSON.stringify(requestQueue));
+    console.warn(`Queued to: ${endpoint}`);
+    if (onSuccess) onSuccess({ queued: true });
+}
+
+let cnt = 5;
+
+setInterval(async () => {
+    if (requestQueue.length === 0) {
+        connectionStatus.classList.add('hidden');
+        return;
+    }
+
+    const { endpoint, method, data } = requestQueue[0];
+
+    connectionStatus.classList.remove('hidden');
+    connectionStatus.textContent = `Offline: retrying in ${cnt} second(s)...`;
+
+    if (cnt != 0) {
+        cnt--;
+        return;
+    }
+
+    cnt = 5;
+
+    const result = await fetchFromAPI(endpoint, method, data);
+
+    if (!result.error) {
+        if (endpoint === ENDPOINTS.analyze) {
+            updateUIWithSentiment(result);
+        }
+
+        requestQueue.shift();
+        localStorage.setItem('requestQueue', JSON.stringify(requestQueue));
+
+        connectionStatus.textContent = `Successful: ${endpoint}`;
+        setTimeout(() => {
+            connectionStatus.classList.add('hidden');
+        }, 3000);
+    } else {
+        connectionStatus.textContent = `Attempt failed. Next attempt in ${cnt} second(s)...`;
+        console.warn(`Attempt failed for: ${endpoint}`);
+    }
+}, 1000);
 
 let currentAnalysis = null;
 
@@ -40,11 +92,13 @@ async function fetchFromAPI(endpoint, method = 'GET', data = null) {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
 
         if (!response.ok) {
+            connectionStatus.classList.remove('hidden');
             throw new Error(`API responded with status: ${response.status}\nURL: ${API_BASE_URL}${endpoint}`);
         }
-
+        connectionStatus.classList.add('hidden');
         return await response.json();
     } catch (error) {
+        connectionStatus.classList.remove('hidden');
         console.error('API Error:', error);
         return { error: error.message };
     }
@@ -89,18 +143,24 @@ async function handleSubmit() {
     elements.submitBtn.disabled = true;
     elements.submitBtn.innerHTML = '<span class="loading"></span> Analyzing...';
 
+    const package = { text: reviewText };
+
     try {
         const result = await fetchFromAPI(ENDPOINTS.analyze, 'POST', {
             text: reviewText
         });
 
         if (result.error) {
-            displayError(result.error);
+            queueRequest(ENDPOINTS.analyze, 'POST', package, () => {
+                displayError('ERROR: Offline');
+            });
         } else {
             updateUIWithSentiment(result);
         }
     } catch (error) {
-        displayError('Failed to analyze text');
+         queueRequest(ENDPOINTS.analyze, 'POST', package, () => {
+            displayError('ERROR: Offline');
+        });
         console.error(error);
     } finally {
         elements.submitBtn.disabled = false;
@@ -124,12 +184,22 @@ function handleFeedback(isCorrect) {
     });
 }
 
+function clearInput() {
+    elements.reviewInput.value = '';
+    elements.sentimentEmoji.textContent = '😐';
+    elements.sentimentText.textContent = 'No analysis yet';
+    currentAnalysis = null;
+}
+
 // Initialize application
 async function initApp() {
     try {
         // app version
         const appVersionData = await fetchFromAPI(ENDPOINTS.appVersion);
-        if (!appVersionData.error) {
+        if (appVersionData.error) {
+            connectionStatus.classList.remove('hidden');
+        } else {
+            connectionStatus.classList.add('hidden');
             elements.appVersion.textContent = `App Version: ${appVersionData.version}`;
         }
 
@@ -144,7 +214,18 @@ async function initApp() {
     }
 }
 
+elements.reviewInput.addEventListener('input', () => {
+    const len = elements.reviewInput.value.length;
+    if (len > 50) {
+        elements.charCounter.textContent = "Bro... You are yapping a lot!";
+        elements.charCounter.style.color = '#ff0000';
+    } else {
+        elements.charCounter.textContent = `${len}/50`;
+        elements.charCounter.style.color = '#000';
+    }
+});
 
+elements.clearBtn.addEventListener('click', clearInput);
 elements.submitBtn.addEventListener('click', handleSubmit);
 elements.correctBtn.addEventListener('click', () => handleFeedback(true));
 elements.incorrectBtn.addEventListener('click', () => handleFeedback(false));
