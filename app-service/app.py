@@ -15,6 +15,7 @@ SENTIMENT_COUNTER = Counter("sentiment_predictions_total", "Count of predicted s
 RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response times", ["endpoint"])
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
 DARKMODE_TOGGLE = Counter("dark_mode_toggle_total", "Count of dark mode toggles", ["version"])
+VISITOR_COUNT = Counter("visitor_count_total", "Count of visitors", ["version"])
 
 
 # Environment URLs
@@ -44,6 +45,14 @@ def analyze():
         }), 200
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 502
+
+@api.route("/metrics/visit", methods=["POST"])
+def track_visit():
+    try:
+        VISITOR_COUNT.labels(version=os.getenv("APP_VERSION", "v1")).inc()
+        return '', 204
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @api.route("/model_version", methods=["GET"])
