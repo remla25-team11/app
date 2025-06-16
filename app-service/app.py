@@ -43,6 +43,11 @@ def analyze():
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 502
 
+@app.route('/health', methods=['GET'])
+def health():
+    """A simple health check endpoint for Kubernetes probes."""
+    return jsonify({'status': 'ok'}), 200
+
 
 @api.route("/model_version", methods=["GET"])
 @RESPONSE_TIME.labels("model_version").time()
