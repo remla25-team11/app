@@ -19,7 +19,7 @@ SENTIMENT_COUNTER = Counter("sentiment_predictions_total", "Count of predicted s
 RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response times", ["endpoint"])
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
 
-# --- Environment Variable Setup ---
+# Environment URLs
 URL_MODEL_SERVICE = os.environ.get("URL_MODEL_SERVICE")
 URL_MODEL_VERSION = os.environ.get("URL_MODEL_VERSION")
 
@@ -27,8 +27,8 @@ if not URL_MODEL_SERVICE or not URL_MODEL_VERSION:
     print("FATAL: URL_MODEL_SERVICE or URL_MODEL_VERSION environment variables not set.")
     exit(1)
 
-
-# --- API Endpoint Definitions ---
+# Blueprint setup
+api = Blueprint('api', __name__, url_prefix='/api')
 
 @api.route("/analyze", methods=["POST"])
 @RESPONSE_TIME.labels("analyze").time()
@@ -68,11 +68,47 @@ def model_version():
         print(f"Error fetching model version from model-service: {e}")
         return jsonify({"error": "Could not fetch model version from model-service", "details": str(e)}), 502
 
-# This is the critical endpoint that was missing.
+
+@api.route("/version", methods=["GET"])
+def version():
+    """
+    Get the app version from the lib-version repository's latest GitHub release tag.
+    """
+    github_api_url = "https://api.github.com/repos/remla25-team11/lib-version/tags" # Changed to fetch all tags
+    try:
+        response = requests.get(github_api_url)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        tags_info = response.json()
+        if tags_info:
+            app_version = tags_info[0].get("name", "unknown") # Get the name of the first tag (latest)
+        else:
+            app_version = "no-tags-found"
+        return jsonify({"version": app_version}), 200
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching app version from GitHub API: {e}")
+        print(traceback.format_exc()) # Print full traceback
+        return jsonify({"error": "Could not fetch app version", "details": str(e)}), 500
+
+@api.route("/metrics/toggle", methods=["POST"])
+def track_dark_toggle():
+    try:
+        DARKMODE_TOGGLE.labels(version=os.getenv("APP_VERSION", "v1")).inc()
+        return '', 204
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @api.route('/health', methods=['GET'])
 def health():
     """A simple health check endpoint for Kubernetes probes."""
     return jsonify({'status': 'ok'}), 200
+
+@api.route("/feedback", methods=["POST"])
+def feedback():
+    data = request.get_json()
+    print("Feedback received success, data:", data)
+    return jsonify({"message": "Feedback received"}), 200
+
 
 @api.route("/metrics")
 def metrics():
