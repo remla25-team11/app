@@ -1,9 +1,12 @@
+# .github/workflows/docker-build-app-service.yml
+
 name: Build & Push app-service
 
 on:
   push:
     paths:
-      - 'app-service/**'
+      # Correct path to your application code
+      - 'app/app-service/**'
       - '.github/workflows/docker-build-app-service.yml'
     branches:
       - main
@@ -24,12 +27,15 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GH_TOKEN }} # Ensure GH_TOKEN is set in your repo secrets
 
     - name: Build and push app-service image
       uses: docker/build-push-action@v5
       with:
-        context: ./app-service
-        file: ./app-service/Dockerfile
+        # The context is the root of the repository
+        context: .
+        # The Dockerfile is at this specific path
+        file: ./app/app-service/Dockerfile
         push: true
-        tags: ghcr.io/remla25-team11/app-service:latest
+        # The image name should match your Helm chart
+        tags: ghcr.io/remla25-team11/app-backend:latest
