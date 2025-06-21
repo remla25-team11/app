@@ -16,8 +16,6 @@ REQUEST_COUNT = Counter("webapp_requests_total", "Total number of requests", ["e
 SENTIMENT_COUNTER = Counter("sentiment_predictions_total", "Count of predicted sentiments", ["sentiment"])
 RESPONSE_TIME = Histogram("request_latency_seconds", "Histogram of response times", ["endpoint"])
 MODEL_VERSION_GAUGE = Gauge("model_version_info", "Model version info", ["version"])
-# Assuming DARKMODE_TOGGLE is defined somewhere, if not this will error.
-# If it's not defined, we should add it. Let's add it for safety.
 DARKMODE_TOGGLE = Counter("darkmode_toggles_total", "Count of dark mode toggles", ["version"])
 
 
