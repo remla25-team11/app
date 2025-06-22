@@ -1,18 +1,15 @@
+# In app-service/Dockerfile
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install git (and any other needed dependencies)
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Install git if needed for pip installs
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 
+# The context will be this directory, so we copy files directly.
 COPY requirements.txt .
-
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-ENV URL_MODEL_SERVICE=http://model-service:8000/predict
-ENV URL_MODEL_VERSION=http://model-service:8000/version
+COPY app.py .
 
 EXPOSE 5000
 

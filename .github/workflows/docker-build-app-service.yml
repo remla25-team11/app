@@ -1,7 +1,10 @@
+# .github/workflows/docker-build-app-service.yml
+
 name: Build & Push app-service
 
 on:
   push:
+    # Trigger on changes inside the app-service directory
     paths:
       - 'app-service/**'
       - '.github/workflows/docker-build-app-service.yml'
@@ -29,7 +32,14 @@ jobs:
     - name: Build and push app-service image
       uses: docker/build-push-action@v5
       with:
+        # The build context is the directory containing the code and Dockerfile.
+        # This path is correct based on the "ls -laR" output.
         context: ./app-service
+        
+        # The file path is also correct relative to the checkout root.
         file: ./app-service/Dockerfile
+        
         push: true
-        tags: ghcr.io/remla25-team11/app-service:latest
+        
+        # The tag must match what your Helm chart expects.
+        tags: ghcr.io/remla25-team11/app-backend:latest
